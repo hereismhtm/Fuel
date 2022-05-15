@@ -1,0 +1,12 @@
+{
+    "folders": [
+        {
+            "path": "."
+        },
+    ],
+    "settings": {
+        "workbench.colorTheme": "Noctis Bordo",
+        "workbench.iconTheme": "material-icon-theme",
+        "editor.renderWhitespace": "none",
+    }
+}
