@@ -11,11 +11,19 @@ class UserController extends Controller
     public function login($who, Request $request)
     {
         $_vc = $request->input('vc');
+        $source = $request->ip();
         $login = ['id' => explode(':', $who)[1]];
         $login['is_email'] = strpos($who, 'email:') === 0;
+        if ($login['is_email']) {
+            if (!$this->user->logged()) {
+                return response('Unauthorized.', 401);
+            }
+            $source = $this->user->id();
+        }
 
         $now = date('Y-m-d H:i:s', date_create('now')->getTimestamp());
         $fifteenMinutesAgo = date('Y-m-d H:i:s', date_create('-15 minute')->getTimestamp());
+        $fourHoursAgo = date('Y-m-d H:i:s', date_create('-4 hour')->getTimestamp());
 
         $status = 404;
         $output = [];
@@ -32,6 +40,18 @@ class UserController extends Controller
                 $status = 200;
                 $output['message'] = 'Verification code already has been sent';
             } else {
+                $source_send_attemps = $this->db->count(
+                    'vcodes',
+                    [
+                        'source' => $source,
+                        'updated_at[<>]' => [$fourHoursAgo, $now],
+                    ]
+                );
+
+                if ($source_send_attemps >= 3) {
+                    return response('Too Many Requests.', 429);
+                }
+
                 // FIXME: generate random code
                 // $code = random_int(1, 999999);
                 $code = 123456;
@@ -40,7 +60,7 @@ class UserController extends Controller
                 $successful_sent = false;
                 if ($login['is_email']) {
                     if ($this->_sendVC(true, $login['id'], $code)) {
-                        $successful_sent = 'E-mail message';
+                        $successful_sent = 'E-mail message intended for account linkup';
                     }
                 } else {
                     $res = $this->db->get(
@@ -71,7 +91,10 @@ class UserController extends Controller
                     $status = 200;
                     $this->databaseRecord(
                         'vcodes',
-                        ['code' => $code],
+                        [
+                            'code' => $code,
+                            'source' => $source,
+                        ],
                         ['login_id' => $login['id']]
                     );
                     $output['message'] = "Verification code sent successfully as $successful_sent";
@@ -95,10 +118,6 @@ class UserController extends Controller
                 $this->db->delete('vcodes', ['id' => $code_id]);
 
                 if ($login['is_email']) {
-                    if (!$this->user->logged()) {
-                        return response('Unauthorized.', 401);
-                    }
-
                     $this->user->setEmail($login['id']);
                     $output['message'] = 'User E-mail saved';
                 } else {
