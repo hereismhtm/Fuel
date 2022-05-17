@@ -130,12 +130,12 @@ class PointController extends Controller
                         $user = $this->user;
 
                         $this->db->action(function ($database) use (
+                            $user,
+                            $_point,
                             &$output,
                             $sale_money,
                             $sum_money,
-                            $user,
-                            $_point,
-                        ) {;
+                        ) {
                             $user->setCredit('-', $sum_money);
                             $year = substr(Carbon::now()->year, 2);
                             $res = $database->insert(
@@ -169,7 +169,7 @@ class PointController extends Controller
                         $output['message'] = 'No enough credit';
                     }
                 } else {
-                    $output['message'] = 'Try again';
+                    $output['message'] = 'Fuel price mismatch, try again';
                 }
 
                 unset($output['first_name']);
@@ -187,19 +187,18 @@ class PointController extends Controller
         return response()->json($output, $status);
     }
 
-    private function _calcVerificationCode(&$D, $user_id)
+    private function _calcVerificationCode(&$output, $user_id)
     {
-        $info = $D['payment_id'] . ':'
+        $info = $output['payment_id'] . ':'
             . $user_id . ':'
-            . $D['point_id'] . ':'
-            . $D['fuel']->name . ':'
-            . $D['litre'] . ':'
-            . $D['sale'];
+            . $output['point_id'] . ':'
+            . $output['fuel']->name . ':'
+            . $output['litre'] . ':'
+            . $output['sale'];
 
-        $hash = hash('SHA512', $info . $D['session_key']);
+        $hash = hash('SHA512', $info . $output['session_key']);
         $hash = substr($hash, 0, 32);
-        // $hash = strtr(base64_encode($hash), '+/=', '-_~');
 
-        $d['verification_code'] = $hash . ':' . $info;
+        $output['verification_code'] = $hash . ':' . $info;
     }
 }

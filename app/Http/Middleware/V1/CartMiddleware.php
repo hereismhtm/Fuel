@@ -15,7 +15,7 @@ class CartMiddleware extends Middleware
             'litre' => number_format($request->route('litre'), 2, '.', ''),
         ]);
 
-        if (floatval($request->route('litre')) == 0) {
+        if (floatval($request->route('litre')) <= 0) {
             return response('Bad Request.', 400);
         }
 
