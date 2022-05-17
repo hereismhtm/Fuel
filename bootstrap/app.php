@@ -64,6 +64,21 @@ $app->singleton('medoo', function () {
     ]);
 });
 
+enum Fuel: string
+{
+    case G = 'gasoline';
+    case D = 'diesel';
+
+    public function price(string $prices): string
+    {
+        $prices_array = explode('|', $prices);
+        return match ($this) {
+            Fuel::G => $prices_array[0],
+            Fuel::D => $prices_array[1],
+        };
+    }
+}
+
 /*
 |--------------------------------------------------------------------------
 | Register Config Files

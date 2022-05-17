@@ -3,13 +3,14 @@
 namespace App\Http\Controllers\V1;
 
 use Carbon\Carbon;
+use Fuel;
 use Illuminate\Http\Request;
 
 class PointController extends Controller
 {
     private $COMMISSION = [100, 30, 10, 60];
 
-    public function lookup($worker, $fuel, $litre)
+    public function lookup($worker, Fuel $fuel, $litre)
     {
         $L = $this->lang;
 
@@ -56,8 +57,7 @@ class PointController extends Controller
             if ($res[0]['pointData']['mode'] == 1 && $prices_confirmed) {
                 $output = $res[0];
 
-                $price = explode('|', $output['branchData']['prices']);
-                $price = $fuel == 'gasoline' ? $price[0] : $price[1];
+                $price = $fuel->price($output['branchData']['prices']);
                 $output['pointData']['fuel'] = $fuel;
                 $output['pointData']['litre'] = $litre;
                 $output['pointData']['price'] = $price;
@@ -86,7 +86,7 @@ class PointController extends Controller
         }
 
         $_point = $request->input('point');
-        $_fuel = $request->input('fuel');
+        $_fuel = Fuel::from($request->input('fuel'));
         $_litre = $request->input('litre');
         $_price = $request->input('price');
 
@@ -112,8 +112,7 @@ class PointController extends Controller
             if ($res['mode'] == 1) {
                 $output = $res;
 
-                $price = explode('|', $output['prices']);
-                $price = $_fuel == 'gasoline' ? $price[0] : $price[1];
+                $price = $_fuel->price($output['prices']);
                 $output['point_id'] = (int) $_point;
                 $output['employee'] = "{$output['first_name']} {$output['last_name']}";
                 $output['fuel'] = $_fuel;
@@ -144,7 +143,7 @@ class PointController extends Controller
                                 [
                                     'user_id' => $user->id(),
                                     'point_id' => $_point,
-                                    'fuel' => strtoupper(substr($output['fuel'], 0, 1)),
+                                    'fuel' => $output['fuel']->name,
                                     'litre' => $output['litre'],
                                     'price' => $output['price'],
                                     'sale' => $sale_money,
@@ -193,7 +192,7 @@ class PointController extends Controller
         $info = $D['payment_id'] . ':'
             . $user_id . ':'
             . $D['point_id'] . ':'
-            . strtoupper(substr($D['fuel'], 0, 1)) . ':'
+            . $D['fuel']->name . ':'
             . $D['litre'] . ':'
             . $D['sale'];
 
