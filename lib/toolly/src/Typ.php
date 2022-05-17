@@ -83,6 +83,14 @@ class Typ
             return ['email', self::lengthEduce($v)];
     }
 
+    public static function correct($v = true, $check_mode = false)
+    {
+        if ($check_mode)
+            return $v;
+        else
+            return ['correct', self::lengthEduce($v)];
+    }
+
     /**
      * Ensuring that source elements match a specific format set
      * @param array $source
