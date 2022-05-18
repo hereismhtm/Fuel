@@ -113,8 +113,8 @@ class PointController extends Controller
                 $output = $res;
 
                 $price = $_fuel->price($output['prices']);
+                $output['user_id'] = $this->user->id();
                 $output['point_id'] = (int) $_point;
-                $output['employee'] = "{$output['first_name']} {$output['last_name']}";
                 $output['fuel'] = $_fuel;
                 $output['litre'] = number_format($_litre, 2, '.', '');
                 $output['price'] = $price;
@@ -123,30 +123,31 @@ class PointController extends Controller
                     $sale = number_format($_litre * $price, 2, '.', '');
                     $output['sale'] = $sale;
                     $output['commission'] = (string) $this->COMMISSION[0];
-                    $sale_money = (int) ($sale * 100);
-                    $sum_money = $sale_money + ($this->COMMISSION[0] * 100);
+                    $output['employee'] = "{$output['first_name']} {$output['last_name']}";
+                    $sale_gems = (int) ($sale * 100);
+                    $sum_gems = $sale_gems + ($this->COMMISSION[0] * 100);
 
-                    if ($sum_money <= $this->user->credit) {
+                    if ($sum_gems <= $this->user->credit) {
                         $user = $this->user;
 
                         $this->db->action(function ($database) use (
                             $user,
                             $_point,
                             &$output,
-                            $sale_money,
-                            $sum_money,
+                            $sale_gems,
+                            $sum_gems,
                         ) {
-                            $user->setCredit('-', $sum_money);
+                            $user->setCredit('-', $sum_gems);
                             $year = substr(Carbon::now()->year, 2);
                             $res = $database->insert(
                                 'payments' . $year,
                                 [
-                                    'user_id' => $user->id(),
+                                    'user_id' => $output['user_id'],
                                     'point_id' => $_point,
                                     'fuel' => $output['fuel']->name,
                                     'litre' => $output['litre'],
                                     'price' => $output['price'],
-                                    'sale' => $sale_money,
+                                    'sale' => $sale_gems,
                                     'emp_c' => $this->COMMISSION[1],
                                     'bra_c' => $this->COMMISSION[2],
                                     'app_c' => $this->COMMISSION[3],
@@ -161,10 +162,10 @@ class PointController extends Controller
                                 'created_at',
                                 ['id' => $database->id()]
                             );
-                            $this->_calcVerificationCode($output, $user->id());
+                            $this->_paymentToken($output);
                         });
 
-                        $status = isset($output['payment_id']) ? 200 : 507;
+                        $status = isset($output['payment_token']) ? 200 : 507;
                     } else {
                         $output['message'] = 'No enough credit';
                     }
@@ -187,18 +188,21 @@ class PointController extends Controller
         return response()->json($output, $status);
     }
 
-    private function _calcVerificationCode(&$output, $user_id)
+    private function _paymentToken(&$output)
     {
         $info = $output['payment_id'] . ':'
-            . $user_id . ':'
+            . $output['user_id'] . ':'
             . $output['point_id'] . ':'
             . $output['fuel']->name . ':'
-            . $output['litre'] . ':'
-            . $output['sale'];
+            . $output['litre'] . '-';
+
+        $info .= $output['sale'] . ':'
+            . 0 . ':' // worker tip
+            . $this->COMMISSION[1];
 
         $hash = hash('SHA512', $info . $output['session_key']);
         $hash = substr($hash, 0, 32);
 
-        $output['verification_code'] = $hash . ':' . $info;
+        $output['payment_token'] = $info . '-' . $hash;
     }
 }
