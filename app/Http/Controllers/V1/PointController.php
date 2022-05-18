@@ -47,7 +47,7 @@ class PointController extends Controller
             ['mac' => $worker]
         );
 
-        $status = 404;
+        $status = 422;
         $output = [];
         if (count($res) == 1) {
             $prices_confirmed = Carbon::parse(
@@ -106,7 +106,7 @@ class PointController extends Controller
             ['points.id' => $_point]
         );
 
-        $status = 404;
+        $status = 422;
         $output = [];
         if ($res != null) {
             if ($res['mode'] == 1) {

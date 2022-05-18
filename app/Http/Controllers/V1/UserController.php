@@ -25,7 +25,7 @@ class UserController extends Controller
         $fifteenMinutesAgo = date('Y-m-d H:i:s', date_create('-15 minute')->getTimestamp());
         $fourHoursAgo = date('Y-m-d H:i:s', date_create('-4 hour')->getTimestamp());
 
-        $status = 404;
+        $status = 422;
         $output = [];
         if ($_vc == 0) {
             $is_code_sent = $this->db->has(
