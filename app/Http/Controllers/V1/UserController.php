@@ -26,7 +26,7 @@ class UserController extends Controller
         $fourHoursAgo = date('Y-m-d H:i:s', date_create('-4 hour')->getTimestamp());
 
         $status = 422;
-        $json = [];
+        $json['message'] = 'Fail';
         if ($_vc == 0) {
             // BUG: Duplicate entry for key 'login_id'
             $is_code_sent = $this->db->has(
@@ -127,7 +127,8 @@ class UserController extends Controller
 
                     $conf = $user->configuration(based_on: 'mobile');
                     if ($conf === true) {
-                        $json['user_data'] = [
+                        $json['message'] = 'Success';
+                        $json['userData'] = [
                             'user_id' => $user->id(),
                             'mobile' => $user->mobile,
                             'email' => $user->email,

@@ -36,7 +36,7 @@ class PointController extends Controller
                     'prices_updated_at',
                 ],
                 'pointData' => [
-                    'employee' => [
+                    'employeeData' => [
                         $L . '_fname(first_name)',
                         $L . '_lname(last_name)',
                     ],
@@ -48,14 +48,16 @@ class PointController extends Controller
         );
 
         $status = 422;
-        $json = [];
+        $json['message'] = 'Fail';
         if (count($res) == 1) {
             $prices_confirmed = Carbon::parse(
                 $res[0]['branchData']['prices_updated_at']
             )->diffInMinutes() >= 10;
 
             if ($res[0]['pointData']['mode'] == 1 && $prices_confirmed) {
-                $json = $res[0];
+                $status = 200;
+                $json['message'] = 'Success';
+                $json = $json + $res[0];
 
                 $price = $fuel->price($json['branchData']['prices']);
                 $json['pointData']['fuel'] = $fuel;
@@ -67,8 +69,6 @@ class PointController extends Controller
                 unset($json['pointData']['mode']);
                 unset($json['branchData']['prices']);
                 unset($json['branchData']['prices_updated_at']);
-
-                $status = 200;
             } else {
                 $json['message'] = 'Out of service';
             }
@@ -107,23 +107,23 @@ class PointController extends Controller
         );
 
         $status = 422;
-        $json = [];
+        $json['message'] = 'Fail';
         if ($res != null) {
             if ($res['mode'] == 1) {
-                $json = $res;
+                $json['receipt'] = $res;
 
-                $price = $_fuel->price($json['prices']);
-                $json['user_id'] = $this->user->id();
-                $json['point_id'] = (int) $_point;
-                $json['fuel'] = $_fuel;
-                $json['litre'] = number_format($_litre, 2, '.', '');
-                $json['price'] = $price;
+                $price = $_fuel->price($json['receipt']['prices']);
+                $json['receipt']['user_id'] = $this->user->id();
+                $json['receipt']['point_id'] = (int) $_point;
+                $json['receipt']['fuel'] = $_fuel;
+                $json['receipt']['litre'] = number_format($_litre, 2, '.', '');
+                $json['receipt']['price'] = $price;
 
                 if ($_price == $price) {
                     $sale = number_format($_litre * $price, 2, '.', '');
-                    $json['sale'] = $sale;
-                    $json['commission'] = (string) $this->COMMISSION[0];
-                    $json['employee'] = "{$json['first_name']} {$json['last_name']}";
+                    $json['receipt']['sale'] = $sale;
+                    $json['receipt']['commission'] = (string) $this->COMMISSION[0];
+                    $json['receipt']['employee'] = "{$json['receipt']['first_name']} {$json['receipt']['last_name']}";
                     $sale_gems = (int) ($sale * 100);
                     $sum_gems = $sale_gems + ($this->COMMISSION[0] * 100);
 
@@ -142,11 +142,11 @@ class PointController extends Controller
                             $res = $database->insert(
                                 'payments' . $year,
                                 [
-                                    'user_id' => $json['user_id'],
+                                    'user_id' => $json['receipt']['user_id'],
                                     'point_id' => $_point,
-                                    'fuel' => $json['fuel']->name,
-                                    'litre' => $json['litre'],
-                                    'price' => $json['price'],
+                                    'fuel' => $json['receipt']['fuel']->name,
+                                    'litre' => $json['receipt']['litre'],
+                                    'price' => $json['receipt']['price'],
                                     'sale' => $sale_gems,
                                     'emp_c' => $this->COMMISSION[1],
                                     'bra_c' => $this->COMMISSION[2],
@@ -156,8 +156,8 @@ class PointController extends Controller
                             if ($res->rowCount() != 1) {
                                 return false;
                             }
-                            $json['payment_id'] = (int) ($year . $database->id());
-                            $json['payment_date'] = $database->get(
+                            $json['receipt']['payment_id'] = (int) ($year . $database->id());
+                            $json['receipt']['payment_date'] = $database->get(
                                 'payments' . $year,
                                 'created_at',
                                 ['id' => $database->id()]
@@ -165,7 +165,10 @@ class PointController extends Controller
                             $this->_paymentToken($json);
                         });
 
-                        $status = isset($json['payment_token']) ? 200 : 507;
+                        $status = isset($json['receipt']['payment_token']) ? 200 : 507;
+                        if ($status == 200) {
+                            $json['message'] = 'Success';
+                        }
                     } else {
                         $json['message'] = 'No enough credit';
                     }
@@ -173,11 +176,11 @@ class PointController extends Controller
                     $json['message'] = 'Fuel price mismatch, try again';
                 }
 
-                unset($json['first_name']);
-                unset($json['last_name']);
-                unset($json['session_key']);
-                unset($json['prices']);
-                unset($json['mode']);
+                unset($json['receipt']['first_name']);
+                unset($json['receipt']['last_name']);
+                unset($json['receipt']['session_key']);
+                unset($json['receipt']['prices']);
+                unset($json['receipt']['mode']);
             } else {
                 $json['message'] = 'Out of service';
             }
@@ -190,19 +193,19 @@ class PointController extends Controller
 
     private function _paymentToken(&$json)
     {
-        $info = $json['payment_id'] . ':'
-            . $json['user_id'] . ':'
-            . $json['point_id'] . ':'
-            . $json['fuel']->name . ':'
-            . $json['litre'] . '-';
+        $info = $json['receipt']['payment_id'] . ':'
+            . $json['receipt']['user_id'] . ':'
+            . $json['receipt']['point_id'] . ':'
+            . $json['receipt']['fuel']->name . ':'
+            . $json['receipt']['litre'] . '-';
 
-        $info .= $json['sale'] . ':'
+        $info .= $json['receipt']['sale'] . ':'
             . 0 . ':' // worker tip
             . $this->COMMISSION[1];
 
-        $hash = hash('SHA512', $info . $json['session_key']);
+        $hash = hash('SHA512', $info . $json['receipt']['session_key']);
         $hash = substr($hash, 0, 32);
 
-        $json['payment_token'] = $info . '-' . $hash;
+        $json['receipt']['payment_token'] = $info . '-' . $hash;
     }
 }
