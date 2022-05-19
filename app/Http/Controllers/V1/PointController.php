@@ -22,26 +22,25 @@ class PointController extends Controller
                 '[>]vendors' => ['branches.vendor_id' => 'id'],
             ],
             [
-                'vendorData' => [
+                'vendor' => [
                     'vendors.id(vendor_id) [Int]',
                     $L . '_vendor(vendor)',
-                    'category',
+                    'sector',
                     'vendors.' . $L . '_contact(vendor_contact)',
                 ],
-                'branchData' => [
+                'branch' => [
+                    'branches.id(branch_id) [Int]',
                     $L . '_branch(branch)',
-                    $L . '_address(address)',
+                    $L . '_address(branch_address)',
                     'branches.' . $L . '_contact(branch_contact)',
                     'prices',
                     'prices_updated_at',
                 ],
-                'pointData' => [
-                    'employeeData' => [
-                        $L . '_fname(first_name)',
-                        $L . '_lname(last_name)',
-                    ],
+                'point' => [
                     'points.id(point_id) [Int]',
                     'mode',
+                    $L . '_fname(first_name)',
+                    $L . '_lname(last_name)',
                 ],
             ],
             ['mac' => $worker]
@@ -51,24 +50,27 @@ class PointController extends Controller
         $json['message'] = 'Fail';
         if (count($res) == 1) {
             $prices_confirmed = Carbon::parse(
-                $res[0]['branchData']['prices_updated_at']
+                $res[0]['branch']['prices_updated_at']
             )->diffInMinutes() >= 10;
 
-            if ($res[0]['pointData']['mode'] == 1 && $prices_confirmed) {
+            if ($res[0]['point']['mode'] == 1 && $prices_confirmed) {
                 $status = 200;
                 $json['message'] = 'Success';
                 $json = $json + $res[0];
 
-                $price = $fuel->price($json['branchData']['prices']);
-                $json['pointData']['fuel'] = $fuel;
-                $json['pointData']['litre'] = $litre;
-                $json['pointData']['price'] = $price;
-                $json['pointData']['sale'] = number_format($litre * $price, 2);
-                $json['pointData']['commission'] = (string) $this->COMMISSION[0];
+                $price = $fuel->price($json['branch']['prices']);
+                $json['point']['fuel'] = $fuel;
+                $json['point']['litre'] = $litre;
+                $json['point']['price'] = $price;
+                $json['point']['sale'] = number_format($litre * $price, 2);
+                $json['point']['commission'] = (string) $this->COMMISSION[0];
+                $json['point']['employee'] = "{$json['point']['first_name']} {$json['point']['last_name']}";
 
-                unset($json['pointData']['mode']);
-                unset($json['branchData']['prices']);
-                unset($json['branchData']['prices_updated_at']);
+                unset($json['branch']['prices']);
+                unset($json['branch']['prices_updated_at']);
+                unset($json['point']['mode']);
+                unset($json['point']['first_name']);
+                unset($json['point']['last_name']);
             } else {
                 $json['message'] = 'Out of service';
             }

@@ -128,7 +128,7 @@ class UserController extends Controller
                     $conf = $user->configuration(based_on: 'mobile');
                     if ($conf === true) {
                         $json['message'] = 'Success';
-                        $json['userData'] = [
+                        $json['user'] = [
                             'user_id' => $user->id(),
                             'mobile' => $user->mobile,
                             'email' => $user->email,
