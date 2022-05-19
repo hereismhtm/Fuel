@@ -82,7 +82,7 @@ class PointController extends Controller
     public function payment(Request $request)
     {
         if (!$this->user->logged()) {
-            return response('Unauthorized.', 401);
+            return response(['message' => 'Unauthorized'], 401);
         }
 
         $_point = $request->input('point');

@@ -16,7 +16,7 @@ class UserController extends Controller
         $login['is_email'] = strpos($who, 'email:') === 0;
         if ($login['is_email']) {
             if (!$this->user->logged()) {
-                return response('Unauthorized.', 401);
+                return response(['message' => 'Unauthorized'], 401);
             }
             $source = $this->user->id();
         }
@@ -49,7 +49,7 @@ class UserController extends Controller
                 );
 
                 if ($source_send_attemps >= 3) {
-                    return response('Too Many Requests.', 429);
+                    return response(['message' => 'Too Many Requests'], 429);
                 }
 
                 // FIXME: generate random code
@@ -77,8 +77,8 @@ class UserController extends Controller
                                 $successful_sent = 'E-mail message';
                             }
                         } else {
-                            return response('User data stored in server '
-                                . 'are not legit.', 500);
+                            return response(['message' => 'User data stored in server '
+                                . 'are not legit'], 500);
                         }
                     } else {
                         if ($this->_sendVC(false, $login['id'], $code)) {
@@ -126,21 +126,21 @@ class UserController extends Controller
 
                     $conf = $user->configuration(based_on: 'mobile');
                     if ($conf === true) {
-                        $output['otp_secret'] = AuthenticIn::$otp_secret_value;
-                        $output['otp_counter'] = $user->otpCounter();
                         $output['user_data'] = [
                             'user_id' => $user->id(),
                             'mobile' => $user->mobile,
                             'email' => $user->email,
                             'name' => $user->name,
-                            'credit' => $user->credit,
+                            'credit' => number_format($user->credit / 100, 2, '.', ''),
                             'frozen' => $user->frozen(),
+                            'otp_secret' => AuthenticIn::$otp_secret_value,
+                            'otp_counter' => $user->otpCounter(),
                         ];
                     } else if ($conf === false) {
-                        return response('Internal database Error.', 500);
+                        return response(['message' => 'Internal database Error'], 500);
                     } else {
-                        return response('User data stored in server '
-                            . 'are not legit.', 500);
+                        return response(['message' => 'User data stored in server '
+                            . 'are not legit'], 500);
                     }
                 }
             } else {
