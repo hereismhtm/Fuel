@@ -48,35 +48,35 @@ class PointController extends Controller
         );
 
         $status = 422;
-        $output = [];
+        $json = [];
         if (count($res) == 1) {
             $prices_confirmed = Carbon::parse(
                 $res[0]['branchData']['prices_updated_at']
             )->diffInMinutes() >= 10;
 
             if ($res[0]['pointData']['mode'] == 1 && $prices_confirmed) {
-                $output = $res[0];
+                $json = $res[0];
 
-                $price = $fuel->price($output['branchData']['prices']);
-                $output['pointData']['fuel'] = $fuel;
-                $output['pointData']['litre'] = $litre;
-                $output['pointData']['price'] = $price;
-                $output['pointData']['sale'] = number_format($litre * $price, 2);
-                $output['pointData']['commission'] = (string) $this->COMMISSION[0];
+                $price = $fuel->price($json['branchData']['prices']);
+                $json['pointData']['fuel'] = $fuel;
+                $json['pointData']['litre'] = $litre;
+                $json['pointData']['price'] = $price;
+                $json['pointData']['sale'] = number_format($litre * $price, 2);
+                $json['pointData']['commission'] = (string) $this->COMMISSION[0];
 
-                unset($output['pointData']['mode']);
-                unset($output['branchData']['prices']);
-                unset($output['branchData']['prices_updated_at']);
+                unset($json['pointData']['mode']);
+                unset($json['branchData']['prices']);
+                unset($json['branchData']['prices_updated_at']);
 
                 $status = 200;
             } else {
-                $output['message'] = 'Out of service';
+                $json['message'] = 'Out of service';
             }
         } else {
-            $output['message'] = 'Not defined';
+            $json['message'] = 'Not defined';
         }
 
-        return response()->json($output, $status);
+        return response()->json($json, $status);
     }
 
     public function payment(Request $request)
@@ -107,23 +107,23 @@ class PointController extends Controller
         );
 
         $status = 422;
-        $output = [];
+        $json = [];
         if ($res != null) {
             if ($res['mode'] == 1) {
-                $output = $res;
+                $json = $res;
 
-                $price = $_fuel->price($output['prices']);
-                $output['user_id'] = $this->user->id();
-                $output['point_id'] = (int) $_point;
-                $output['fuel'] = $_fuel;
-                $output['litre'] = number_format($_litre, 2, '.', '');
-                $output['price'] = $price;
+                $price = $_fuel->price($json['prices']);
+                $json['user_id'] = $this->user->id();
+                $json['point_id'] = (int) $_point;
+                $json['fuel'] = $_fuel;
+                $json['litre'] = number_format($_litre, 2, '.', '');
+                $json['price'] = $price;
 
                 if ($_price == $price) {
                     $sale = number_format($_litre * $price, 2, '.', '');
-                    $output['sale'] = $sale;
-                    $output['commission'] = (string) $this->COMMISSION[0];
-                    $output['employee'] = "{$output['first_name']} {$output['last_name']}";
+                    $json['sale'] = $sale;
+                    $json['commission'] = (string) $this->COMMISSION[0];
+                    $json['employee'] = "{$json['first_name']} {$json['last_name']}";
                     $sale_gems = (int) ($sale * 100);
                     $sum_gems = $sale_gems + ($this->COMMISSION[0] * 100);
 
@@ -133,7 +133,7 @@ class PointController extends Controller
                         $this->db->action(function ($database) use (
                             $user,
                             $_point,
-                            &$output,
+                            &$json,
                             $sale_gems,
                             $sum_gems,
                         ) {
@@ -142,11 +142,11 @@ class PointController extends Controller
                             $res = $database->insert(
                                 'payments' . $year,
                                 [
-                                    'user_id' => $output['user_id'],
+                                    'user_id' => $json['user_id'],
                                     'point_id' => $_point,
-                                    'fuel' => $output['fuel']->name,
-                                    'litre' => $output['litre'],
-                                    'price' => $output['price'],
+                                    'fuel' => $json['fuel']->name,
+                                    'litre' => $json['litre'],
+                                    'price' => $json['price'],
                                     'sale' => $sale_gems,
                                     'emp_c' => $this->COMMISSION[1],
                                     'bra_c' => $this->COMMISSION[2],
@@ -156,53 +156,53 @@ class PointController extends Controller
                             if ($res->rowCount() != 1) {
                                 return false;
                             }
-                            $output['payment_id'] = (int) ($year . $database->id());
-                            $output['payment_date'] = $database->get(
+                            $json['payment_id'] = (int) ($year . $database->id());
+                            $json['payment_date'] = $database->get(
                                 'payments' . $year,
                                 'created_at',
                                 ['id' => $database->id()]
                             );
-                            $this->_paymentToken($output);
+                            $this->_paymentToken($json);
                         });
 
-                        $status = isset($output['payment_token']) ? 200 : 507;
+                        $status = isset($json['payment_token']) ? 200 : 507;
                     } else {
-                        $output['message'] = 'No enough credit';
+                        $json['message'] = 'No enough credit';
                     }
                 } else {
-                    $output['message'] = 'Fuel price mismatch, try again';
+                    $json['message'] = 'Fuel price mismatch, try again';
                 }
 
-                unset($output['first_name']);
-                unset($output['last_name']);
-                unset($output['session_key']);
-                unset($output['prices']);
-                unset($output['mode']);
+                unset($json['first_name']);
+                unset($json['last_name']);
+                unset($json['session_key']);
+                unset($json['prices']);
+                unset($json['mode']);
             } else {
-                $output['message'] = 'Out of service';
+                $json['message'] = 'Out of service';
             }
         } else {
-            $output['message'] = 'Not defined';
+            $json['message'] = 'Not defined';
         }
 
-        return response()->json($output, $status);
+        return response()->json($json, $status);
     }
 
-    private function _paymentToken(&$output)
+    private function _paymentToken(&$json)
     {
-        $info = $output['payment_id'] . ':'
-            . $output['user_id'] . ':'
-            . $output['point_id'] . ':'
-            . $output['fuel']->name . ':'
-            . $output['litre'] . '-';
+        $info = $json['payment_id'] . ':'
+            . $json['user_id'] . ':'
+            . $json['point_id'] . ':'
+            . $json['fuel']->name . ':'
+            . $json['litre'] . '-';
 
-        $info .= $output['sale'] . ':'
+        $info .= $json['sale'] . ':'
             . 0 . ':' // worker tip
             . $this->COMMISSION[1];
 
-        $hash = hash('SHA512', $info . $output['session_key']);
+        $hash = hash('SHA512', $info . $json['session_key']);
         $hash = substr($hash, 0, 32);
 
-        $output['payment_token'] = $info . '-' . $hash;
+        $json['payment_token'] = $info . '-' . $hash;
     }
 }

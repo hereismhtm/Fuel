@@ -26,7 +26,7 @@ class UserController extends Controller
         $fourHoursAgo = date('Y-m-d H:i:s', date_create('-4 hour')->getTimestamp());
 
         $status = 422;
-        $output = [];
+        $json = [];
         if ($_vc == 0) {
             // BUG: Duplicate entry for key 'login_id'
             $is_code_sent = $this->db->has(
@@ -39,7 +39,7 @@ class UserController extends Controller
 
             if ($is_code_sent) {
                 $status = 200;
-                $output['message'] = 'Verification code already has been sent';
+                $json['message'] = 'Verification code already has been sent';
             } else {
                 $source_send_attemps = $this->db->count(
                     'vcodes',
@@ -98,9 +98,9 @@ class UserController extends Controller
                         ],
                         ['login_id' => $login['id']]
                     );
-                    $output['message'] = "Verification code sent successfully as $successful_sent";
+                    $json['message'] = "Verification code sent successfully as $successful_sent";
                 } else {
-                    $output['message'] = 'Verification code send failed';
+                    $json['message'] = 'Verification code send failed';
                 }
             }
         } else {
@@ -120,14 +120,14 @@ class UserController extends Controller
 
                 if ($login['is_email']) {
                     $this->user->setEmail($login['id']);
-                    $output['message'] = 'User E-mail saved';
+                    $json['message'] = 'User E-mail saved';
                 } else {
                     $user = $this->authenticIn->userHolder();
                     $user->mobile = $login['id'];
 
                     $conf = $user->configuration(based_on: 'mobile');
                     if ($conf === true) {
-                        $output['user_data'] = [
+                        $json['user_data'] = [
                             'user_id' => $user->id(),
                             'mobile' => $user->mobile,
                             'email' => $user->email,
@@ -145,11 +145,11 @@ class UserController extends Controller
                     }
                 }
             } else {
-                $output['message'] = 'Wrong verification code';
+                $json['message'] = 'Wrong verification code';
             }
         }
 
-        return response()->json($output, $status);
+        return response()->json($json, $status);
     }
 
     private function _sendVC(bool $as_email, string $to, string $code)
