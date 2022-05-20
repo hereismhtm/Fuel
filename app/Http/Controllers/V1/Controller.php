@@ -28,10 +28,13 @@ class Controller extends BaseController
 
     public function databaseRecord(string $table, array $data, array $where): int|bool
     {
+        $data['updated_at'] = date('Y-m-d H:i:s', date_create('now')->getTimestamp());
+
         $pdo = $this->db->update($table, $data, $where);
         if ($pdo->rowCount() == 1) {
             return true;
         } else {
+            unset($data['updated_at']);
             unset($where['id']);
             $values = array_merge($where, $data);
             $pdo = $this->db->insert($table, $values);

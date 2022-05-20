@@ -81,7 +81,6 @@ abstract class UserBaseModel
         foreach ($changes as $value) {
             $data[$value] = $this->$value;
         }
-        $data['updated_at'] = date('Y-m-d H:i:s');
 
         $process = $this->userDatabaseRecord(
             $data,
@@ -202,10 +201,13 @@ abstract class UserBaseModel
 
     private function userDatabaseRecord(array $data, array $where): int|bool
     {
+        $data['updated_at'] = date('Y-m-d H:i:s', date_create('now')->getTimestamp());
+
         $pdo = $this->model_database->update($this->model_table, $data, $where);
         if ($pdo->rowCount() == 1) {
             return true;
         } else {
+            unset($data['updated_at']);
             unset($where['id']);
             $values = array_merge($where, $data);
             $pdo = $this->model_database->insert($this->model_table, $values);

@@ -28,7 +28,6 @@ class UserController extends Controller
         $status = 422;
         $json['message'] = 'Fail';
         if ($_vc == 0) {
-            // BUG: Duplicate entry for key 'login_id'
             $is_code_sent = $this->db->has(
                 'vcodes',
                 [
