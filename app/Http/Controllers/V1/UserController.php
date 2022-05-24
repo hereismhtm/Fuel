@@ -59,7 +59,7 @@ class UserController extends Controller
 
                 $successful_sent = false;
                 if ($login['is_email']) {
-                    if ($this->_sendVC(true, $login['id'], $code)) {
+                    if ($this->_sendVC($login['id'], $code, as_email: true)) {
                         $successful_sent = 'E-mail message intended for account linkup';
                     }
                 } else {
@@ -73,7 +73,7 @@ class UserController extends Controller
                     ) {
                         $user = $this->authenticIn->userHolder($res['id']);
                         if ($user->legit()) {
-                            if ($this->_sendVC(true, $res['email'], $code)) {
+                            if ($this->_sendVC($res['email'], $code, as_email: true)) {
                                 $successful_sent = 'E-mail message';
                             }
                         } else {
@@ -81,7 +81,7 @@ class UserController extends Controller
                                 . 'are not legit'], 500);
                         }
                     } else {
-                        if ($this->_sendVC(false, $login['id'], $code)) {
+                        if ($this->_sendVC($login['id'], $code, as_email: false)) {
                             $successful_sent = 'SMS message';
                         }
                     }
@@ -152,7 +152,7 @@ class UserController extends Controller
         return response()->json($json, $status);
     }
 
-    private function _sendVC(bool $as_email, string $to, string $code)
+    private function _sendVC(string $to, string $code, bool $as_email)
     {
         //TODO: write verification code send script
         return true;
