@@ -6,7 +6,6 @@ use AuthenticIn\AuthenticIn;
 use App\Models\AuthenticInUser;
 use Illuminate\Http\Request;
 use Laravel\Lumen\Routing\Controller as BaseController;
-use Laravel\Lumen\Routing\Router;
 use Medoo\Medoo;
 
 class Controller extends BaseController
@@ -16,11 +15,11 @@ class Controller extends BaseController
     protected AuthenticIn $authenticIn;
     protected AuthenticInUser $user;
 
-    public function __construct(Router $router, Request $request)
+    public function __construct(Request $request)
     {
         $this->lang = $request->route('lang');
 
-        $this->db = $router->app->medoo;
+        $this->db = app('medoo');
 
         $this->authenticIn = new AuthenticIn($this->db);
         $this->user = $this->authenticIn->identifyUser($request);
