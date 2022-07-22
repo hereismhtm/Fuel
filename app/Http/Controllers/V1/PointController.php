@@ -10,7 +10,7 @@ class PointController extends Controller
 {
     private $COMMISSION = [100, 30, 10, 60];
 
-    public function lookup($worker, Fuel $fuel, $litre)
+    public function checkout($worker, Fuel $fuel, $litre)
     {
         $L = $this->lang;
 

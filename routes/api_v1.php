@@ -21,7 +21,7 @@ $router->post('user/{who}/login', [
 
 $router->get('cart/{worker:[0-9]{16}}/{fuel:' . Fuel::G->value . '|' . Fuel::D->value . '}/{litre:[0-9]+|[0-9]+\.[0-9]{1,2}}', [
     'middleware' => 'cart',
-    'uses' => 'PointController@lookup'
+    'uses' => 'PointController@checkout'
 ]);
 
 $router->post('pay', [
