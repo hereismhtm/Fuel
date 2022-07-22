@@ -9,6 +9,7 @@ enum Stamp: string
     case UserDataDamage = 'User data stored in server are damaged';
     case FailedProcess = 'Failed process';
     case PreconditionFailed = 'Precondition Failed.';
+    case Forbidden = 'Forbidden.';
     case BadRequest = 'Bad Request.';
     case CalmDown = 'You send many requests in a short time, calm down';
     case VerificationCodeSendFailed = 'Verification code send failed';
@@ -32,6 +33,7 @@ enum Stamp: string
             Stamp::UserDataDamage => 500,
             Stamp::FailedProcess => 507,
             Stamp::PreconditionFailed => 412,
+            Stamp::Forbidden => 403,
             Stamp::BadRequest => 400,
             Stamp::CalmDown => 429,
             Stamp::VerificationCodeSendFailed => 422,

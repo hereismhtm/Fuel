@@ -23,7 +23,7 @@ class GateMiddleware
 
         $firewl = new Firewl(app('medoo'));
         if ($firewl->isBanned()) {
-            return response('Forbidden.', 403);
+            return response(...app('answer')->be(Stamp::Forbidden));
         }
 
         return $next($request);
