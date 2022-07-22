@@ -52,9 +52,7 @@ class UserController extends Controller
                     return response(['message' => 'Too Many Requests'], 429);
                 }
 
-                // FIXME: generate random code
-                // $code = random_int(1, 999999);
-                $code = 123456;
+                $code = env('APP_DEBUG') === true ? 123456 : random_int(1, 999999);
                 $code = str_pad($code, 6, '0', STR_PAD_LEFT);
 
                 $successful_sent = false;
@@ -152,9 +150,9 @@ class UserController extends Controller
         return response()->json($json, $status);
     }
 
+    // TODO: write verification code send script
     private function _sendVC(string $to, string $code, bool $as_email)
     {
-        //TODO: write verification code send script
         return true;
     }
 }

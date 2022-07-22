@@ -110,7 +110,7 @@ class AuthenticIn
     private static function defuseKey(): Key
     {
         if (AuthenticIn::$defuse_key === null) {
-            $keyAscii = file_get_contents(getenv('AUTHENTICIN_ETC') . '/authenticin_defuse.key');
+            $keyAscii = file_get_contents(env('AUTHENTICIN_ETC') . '/authenticin_defuse.key');
             AuthenticIn::$defuse_key = Key::loadFromAsciiSafeString($keyAscii);
         }
         return AuthenticIn::$defuse_key;

@@ -14,10 +14,6 @@
 */
 
 $router->get('/', function () use ($router) {
-    // $_p = '24';
-    // $p = '24.00';
-    // echo ($_p == $p) ? 'yes' : 'no';
-
     return $router->app->version();
 });
 

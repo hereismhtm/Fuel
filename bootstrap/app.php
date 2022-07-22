@@ -1,13 +1,15 @@
 <?php
 
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
 require_once __DIR__ . '/../vendor/autoload.php';
 
 (new Laravel\Lumen\Bootstrap\LoadEnvironmentVariables(
     dirname(__DIR__)
 ))->bootstrap();
+
+if (env('APP_DEBUG') === true) {
+    error_reporting(E_ALL);
+    ini_set('display_errors', 1);
+}
 
 date_default_timezone_set(env('APP_TIMEZONE', 'UTC'));
 
