@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Http\Stamp;
 use Closure;
+use Firewl\Firewl;
 use Illuminate\Http\Request;
 
 class GateMiddleware
@@ -18,6 +19,11 @@ class GateMiddleware
             if (!$request->secure()) {
                 return response(...app('answer')->be(Stamp::PreconditionFailed));
             }
+        }
+
+        $firewl = new Firewl(app('medoo'));
+        if ($firewl->isBanned()) {
+            return response('Forbidden.', 403);
         }
 
         return $next($request);

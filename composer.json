@@ -24,6 +24,7 @@
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/",
+            "Firewl\\": "lib/firewl/src/",
             "AuthenticIn\\": "lib/authenticin/src/",
             "Toolly\\": "lib/toolly/src/"
         }
