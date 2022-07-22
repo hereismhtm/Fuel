@@ -16,7 +16,7 @@ class UserController extends Controller
         $login = ['id' => explode(':', $who)[1]];
         $login['is_email'] = strpos($who, 'email:') === 0;
         if ($login['is_email']) {
-            if (!$this->user->logged()) {
+            if (!$this->user->is_logged()) {
                 return response(...$this->answer->be(Stamp::LoginFirst));
             }
             $source = $this->user->id();
@@ -72,7 +72,7 @@ class UserController extends Controller
                         Typ::validate($res, ['email' => Typ::email()])
                     ) {
                         $user = $this->authenticIn->userHolder($res['id']);
-                        if ($user->legit()) {
+                        if ($user->is_intact()) {
                             if ($this->_sendVC($res['email'], $code, as_email: true)) {
                                 $successful_sent = 'E-mail message';
                             }

@@ -92,7 +92,7 @@ abstract class UserBaseModel
                 $this->load($process);
             } else {
                 $this->load([$based_on => $this->$based_on]);
-                if (!$this->legit()) return 0;
+                if (!$this->is_intact()) return 0;
             }
 
             $this->safeguard = AuthenticIn::generateSafeguard($this->fullGuardedDataset());
@@ -112,7 +112,7 @@ abstract class UserBaseModel
         if ($this->id !== null) {
             if ($this->frozen === false) {
                 if ($counter > $this->otp_counter) {
-                    if ($this->legit()) {
+                    if ($this->is_intact()) {
                         if (
                             $otp ==
                             AuthenticIn::otp($counter, $this->otp_secret)
@@ -129,7 +129,7 @@ abstract class UserBaseModel
         return false;
     }
 
-    final public function legit(): bool
+    final public function is_intact(): bool
     {
         $data = AuthenticIn::extractSafeguard($this->safeguard);
         if ($data === false) {
@@ -142,7 +142,7 @@ abstract class UserBaseModel
             AuthenticIn::guard($this->fullGuardedDataset(), $this->otp_secret);
     }
 
-    final public function logged(): bool
+    final public function is_logged(): bool
     {
         return $this->logged;
     }

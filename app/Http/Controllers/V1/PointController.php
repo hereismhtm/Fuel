@@ -84,7 +84,7 @@ class PointController extends Controller
 
     public function payment(Request $request)
     {
-        if (!$this->user->logged()) {
+        if (!$this->user->is_logged()) {
             return response(...$this->answer->be(Stamp::LoginFirst));
         }
 
