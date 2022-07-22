@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware\V1;
 
+use App\Http\Stamp;
 use Closure;
 use Fuel;
 use Illuminate\Http\Request;
@@ -23,7 +24,7 @@ class PayMiddleware extends Middleware
         if (floatval($request->input('price')) <= 0) $is_ok = false;
 
         if (!$is_ok) {
-            return response('Bad Request.', 400);
+            return response(...app('answer')->be(Stamp::BadRequest));
         }
 
         return $next($request);

@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware\V1;
 
+use App\Http\Stamp;
 use Closure;
 use Fuel;
 use Illuminate\Http\Request;
@@ -16,7 +17,7 @@ class CartMiddleware extends Middleware
         ]);
 
         if (floatval($request->route('litre')) <= 0) {
-            return response('Bad Request.', 400);
+            return response(...app('answer')->be(Stamp::BadRequest));
         }
 
         return $next($request);

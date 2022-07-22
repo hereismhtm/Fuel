@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\V1;
 
+use App\Http\Stamp;
 use Carbon\Carbon;
 use Fuel;
 use Illuminate\Http\Request;
@@ -46,16 +47,16 @@ class PointController extends Controller
             ['mac' => $worker]
         );
 
-        $status = 422;
-        $json['message'] = 'Fail';
+        $this->answer->is(Stamp::Fail);
         if (count($res) == 1) {
             $prices_confirmed = Carbon::parse(
                 $res[0]['branch']['prices_updated_at']
             )->diffInMinutes() >= 10;
 
             if ($res[0]['point']['mode'] == 1 && $prices_confirmed) {
-                $status = 200;
-                $json['message'] = 'Success';
+                $this->answer->is(Stamp::Success);
+
+                $json = &$this->answer->json();
                 $json = $json + $res[0];
 
                 $price = $fuel->price($json['branch']['prices']);
@@ -72,19 +73,19 @@ class PointController extends Controller
                 unset($json['point']['first_name']);
                 unset($json['point']['last_name']);
             } else {
-                $json['message'] = 'Out of service';
+                $this->answer->is(Stamp::OutOfService);
             }
         } else {
-            $json['message'] = 'Not defined';
+            $this->answer->is(Stamp::NotDefined);
         }
 
-        return response()->json($json, $status);
+        return response()->json(...$this->answer->be());
     }
 
     public function payment(Request $request)
     {
-        if (!$this->user->logged()) {
-            return response(['message' => 'Unauthorized'], 401);
+        if (!$this->user->is_logged()) {
+            return response(...$this->answer->be(Stamp::LoginFirst));
         }
 
         $_point = $request->input('point');
@@ -108,10 +109,10 @@ class PointController extends Controller
             ['points.id' => $_point]
         );
 
-        $status = 422;
-        $json['message'] = 'Fail';
+        $this->answer->is(Stamp::Fail);
         if ($res != null) {
             if ($res['mode'] == 1) {
+                $json = &$this->answer->json();
                 $json['receipt'] = $res;
 
                 $price = $_fuel->price($json['receipt']['prices']);
@@ -167,15 +168,16 @@ class PointController extends Controller
                             $this->_paymentToken($json);
                         });
 
-                        $status = isset($json['receipt']['payment_token']) ? 200 : 507;
-                        if ($status == 200) {
-                            $json['message'] = 'Success';
+                        if (isset($json['receipt']['payment_id'])) {
+                            $this->answer->is(Stamp::Success);
+                        } else {
+                            $this->answer->is(Stamp::FailedProcess);
                         }
                     } else {
-                        $json['message'] = 'No enough credit';
+                        $this->answer->is(Stamp::NoEnoughCredit);
                     }
                 } else {
-                    $json['message'] = 'Fuel price mismatch, try again';
+                    $this->answer->is(Stamp::PriceMismatch);
                 }
 
                 unset($json['receipt']['first_name']);
@@ -184,13 +186,13 @@ class PointController extends Controller
                 unset($json['receipt']['prices']);
                 unset($json['receipt']['mode']);
             } else {
-                $json['message'] = 'Out of service';
+                $this->answer->is(Stamp::OutOfService);
             }
         } else {
-            $json['message'] = 'Not defined';
+            $this->answer->is(Stamp::NotDefined);
         }
 
-        return response()->json($json, $status);
+        return response()->json(...$this->answer->be());
     }
 
     private function _paymentToken(&$json)
