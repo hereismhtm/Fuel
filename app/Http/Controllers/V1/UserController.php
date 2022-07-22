@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\V1;
 
+use App\Http\Stamp;
 use AuthenticIn\AuthenticIn;
 use Illuminate\Http\Request;
 use Toolly\Typ;
@@ -16,7 +17,7 @@ class UserController extends Controller
         $login['is_email'] = strpos($who, 'email:') === 0;
         if ($login['is_email']) {
             if (!$this->user->logged()) {
-                return response(['message' => 'Unauthorized'], 401);
+                return response(...$this->answer->be(Stamp::LoginFirst));
             }
             $source = $this->user->id();
         }
@@ -25,8 +26,8 @@ class UserController extends Controller
         $fifteenMinutesAgo = date('Y-m-d H:i:s', date_create('-15 minute')->getTimestamp());
         $fourHoursAgo = date('Y-m-d H:i:s', date_create('-4 hour')->getTimestamp());
 
-        $status = 422;
-        $json['message'] = 'Fail';
+        $this->answer->is(Stamp::Fail);
+        $json = &$this->answer->json();
         if ($_vc == 0) {
             $is_code_sent = $this->db->has(
                 'vcodes',
@@ -37,8 +38,7 @@ class UserController extends Controller
             );
 
             if ($is_code_sent) {
-                $status = 200;
-                $json['message'] = 'Verification code already has been sent';
+                $this->answer->is(Stamp::VerificationCodeBeenSent);
             } else {
                 $source_send_attemps = $this->db->count(
                     'vcodes',
@@ -49,7 +49,7 @@ class UserController extends Controller
                 );
 
                 if ($source_send_attemps >= 3) {
-                    return response(['message' => 'Too Many Requests'], 429);
+                    return response(...$this->answer->be(Stamp::CalmDown));
                 }
 
                 // FIXME: generate random code
@@ -77,8 +77,9 @@ class UserController extends Controller
                                 $successful_sent = 'E-mail message';
                             }
                         } else {
-                            return response(['message' => 'User data stored in server '
-                                . 'are not legit'], 500);
+                            return response(...$this->answer->be(
+                                Stamp::UserDataDamage
+                            ));
                         }
                     } else {
                         if ($this->_sendVC($login['id'], $code, as_email: false)) {
@@ -88,7 +89,6 @@ class UserController extends Controller
                 }
 
                 if ($successful_sent !== false) {
-                    $status = 200;
                     $this->databaseRecord(
                         'vcodes',
                         [
@@ -97,9 +97,12 @@ class UserController extends Controller
                         ],
                         ['login_id' => $login['id']]
                     );
-                    $json['message'] = "Verification code sent successfully as $successful_sent";
+                    $this->answer->is(
+                        Stamp::VerificationCodeSent,
+                        " as $successful_sent"
+                    );
                 } else {
-                    $json['message'] = 'Verification code send failed';
+                    $this->answer->is(Stamp::VerificationCodeSendFailed);
                 }
             }
         } else {
@@ -114,19 +117,18 @@ class UserController extends Controller
             );
 
             if ($code_id != null) {
-                $status = 200;
                 $this->db->delete('vcodes', ['id' => $code_id]);
 
                 if ($login['is_email']) {
                     $this->user->setEmail($login['id']);
-                    $json['message'] = 'User E-mail saved';
+                    $this->answer->is(Stamp::UserEmailSaved);
                 } else {
                     $user = $this->authenticIn->userHolder();
                     $user->mobile = $login['id'];
 
                     $conf = $user->configuration(based_on: 'mobile');
                     if ($conf === true) {
-                        $json['message'] = 'Success';
+                        $this->answer->is(Stamp::Success);
                         $json['user'] = [
                             'user_id' => $user->id(),
                             'mobile' => $user->mobile,
@@ -138,18 +140,21 @@ class UserController extends Controller
                             'otp_counter' => $user->otpCounter(),
                         ];
                     } else if ($conf === false) {
-                        return response(['message' => 'Internal database Error'], 500);
+                        return response(...$this->answer->be(
+                            Stamp::InternalDatabaseError
+                        ));
                     } else {
-                        return response(['message' => 'User data stored in server '
-                            . 'are not legit'], 500);
+                        return response(...$this->answer->be(
+                            Stamp::UserDataDamage
+                        ));
                     }
                 }
             } else {
-                $json['message'] = 'Wrong verification code';
+                $this->answer->is(Stamp::WrongVerificationCode);
             }
         }
 
-        return response()->json($json, $status);
+        return response()->json(...$this->answer->be());
     }
 
     private function _sendVC(string $to, string $code, bool $as_email)

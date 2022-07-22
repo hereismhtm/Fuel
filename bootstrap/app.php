@@ -64,6 +64,10 @@ $app->singleton('medoo', function () {
     ]);
 });
 
+$app->singleton('answer', function () {
+    return new \Toolly\Answer();
+});
+
 enum Fuel: string
 {
     case G = 'gasoline';

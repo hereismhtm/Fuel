@@ -7,11 +7,13 @@ use App\Models\AuthenticInUser;
 use Illuminate\Http\Request;
 use Laravel\Lumen\Routing\Controller as BaseController;
 use Medoo\Medoo;
+use Toolly\Answer;
 
 class Controller extends BaseController
 {
     protected string $lang;
     protected Medoo $db;
+    protected Answer $answer;
     protected AuthenticIn $authenticIn;
     protected AuthenticInUser $user;
 
@@ -20,6 +22,7 @@ class Controller extends BaseController
         $this->lang = $request->route('lang');
 
         $this->db = app('medoo');
+        $this->answer = app('answer');
 
         $this->authenticIn = new AuthenticIn($this->db);
         $this->user = $this->authenticIn->identifyUser($request);

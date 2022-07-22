@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware\V1;
 
+use App\Http\Stamp;
 use Closure;
 use Illuminate\Http\Request;
 use Toolly\Typ;
@@ -33,7 +34,7 @@ class LoginMiddleware extends Middleware
         }
 
         if (!$is_ok) {
-            return response('Bad Request.', 400);
+            return response(...app('answer')->be(Stamp::BadRequest));
         }
 
         return $next($request);
