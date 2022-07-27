@@ -7,7 +7,7 @@ use Closure;
 use Firewl\Firewl;
 use Illuminate\Http\Request;
 
-class GateMiddleware
+class AppMiddleware
 {
     public function handle(Request $request, Closure $next)
     {
