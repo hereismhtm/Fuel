@@ -9,9 +9,7 @@ use Illuminate\Http\Request;
 
 class PointController extends Controller
 {
-    private $COMMISSION = [100, 30, 10, 60];
-
-    public function checkout($worker, Fuel $fuel, $litre)
+    public function checkout($mac, Fuel $fuel, $litre)
     {
         $L = $this->lang;
 
@@ -44,7 +42,7 @@ class PointController extends Controller
                     $L . '_lname(last_name)',
                 ],
             ],
-            ['mac' => $worker]
+            ['mac' => $mac]
         );
 
         $this->answer->is(Stamp::Fail);
@@ -64,7 +62,7 @@ class PointController extends Controller
                 $json['point']['litre'] = $litre;
                 $json['point']['price'] = $price;
                 $json['point']['sale'] = number_format($litre * $price, 2);
-                $json['point']['commission'] = (string) $this->COMMISSION[0];
+                $json['point']['commission'] = Commission::total->str();
                 $json['point']['employee'] = "{$json['point']['first_name']} {$json['point']['last_name']}";
 
                 unset($json['branch']['prices']);
@@ -113,9 +111,9 @@ class PointController extends Controller
         if ($res != null) {
             if ($res['mode'] == 1) {
                 $json = &$this->answer->json();
-                $json['receipt'] = $res;
+                $json = $json + $res;
 
-                $price = $_fuel->price($json['receipt']['prices']);
+                $price = $_fuel->price($json['prices']);
                 $json['receipt']['user_id'] = $this->user->id();
                 $json['receipt']['point_id'] = (int) $_point;
                 $json['receipt']['fuel'] = $_fuel;
@@ -125,10 +123,10 @@ class PointController extends Controller
                 if ($_price == $price) {
                     $sale = number_format($_litre * $price, 2, '.', '');
                     $json['receipt']['sale'] = $sale;
-                    $json['receipt']['commission'] = (string) $this->COMMISSION[0];
-                    $json['receipt']['employee'] = "{$json['receipt']['first_name']} {$json['receipt']['last_name']}";
-                    $sale_gems = (int) ($sale * 100);
-                    $sum_gems = $sale_gems + ($this->COMMISSION[0] * 100);
+                    $json['receipt']['commission'] = Commission::total->str();
+                    $json['receipt']['employee'] = "{$json['first_name']} {$json['last_name']}";
+                    $sale_gems = (int) $sale * 100;
+                    $sum_gems = $sale_gems + Commission::total->value * 100;
 
                     if ($sum_gems <= $this->user->credit) {
                         $user = $this->user;
@@ -151,9 +149,9 @@ class PointController extends Controller
                                     'litre' => $json['receipt']['litre'],
                                     'price' => $json['receipt']['price'],
                                     'sale' => $sale_gems,
-                                    'emp_c' => $this->COMMISSION[1],
-                                    'bra_c' => $this->COMMISSION[2],
-                                    'app_c' => $this->COMMISSION[3],
+                                    'emp_c' => Commission::employee->value,
+                                    'bra_c' => Commission::branch->value,
+                                    'app_c' => Commission::application->value,
                                 ]
                             );
                             if ($res->rowCount() != 1) {
@@ -180,11 +178,11 @@ class PointController extends Controller
                     $this->answer->is(Stamp::PriceMismatch);
                 }
 
-                unset($json['receipt']['first_name']);
-                unset($json['receipt']['last_name']);
-                unset($json['receipt']['session_key']);
-                unset($json['receipt']['prices']);
-                unset($json['receipt']['mode']);
+                unset($json['first_name']);
+                unset($json['last_name']);
+                unset($json['session_key']);
+                unset($json['prices']);
+                unset($json['mode']);
             } else {
                 $this->answer->is(Stamp::OutOfService);
             }
@@ -204,12 +202,25 @@ class PointController extends Controller
             . $json['receipt']['litre'] . '-';
 
         $info .= $json['receipt']['sale'] . ':'
-            . 0 . ':' // worker tip
-            . $this->COMMISSION[1];
+            . 0 . ':' // employee tip
+            . Commission::employee->value;
 
-        $hash = hash('SHA512', $info . $json['receipt']['session_key']);
+        $hash = hash('SHA512', $info . $json['session_key']);
         $hash = substr($hash, 0, 32);
 
         $json['receipt']['payment_token'] = $info . '-' . $hash;
+    }
+}
+
+enum Commission: int
+{
+    case employee = 30;
+    case branch = 10;
+    case application = 60;
+    case total = 100;
+
+    public function str(): string
+    {
+        return $this->value;
     }
 }
