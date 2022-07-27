@@ -25,29 +25,29 @@ enum Stamp: string
     case VerificationCodeSent = 'Verification code sent successfully';
     case UserEmailSaved = 'User E-mail saved';
 
-    public function code(): int
+    public function data(): array
     {
         return match ($this) {
-            Stamp::ServiceUnavailable => 503,
-            Stamp::InternalDatabaseError => 500,
-            Stamp::UserDataDamage => 500,
-            Stamp::FailedProcess => 507,
-            Stamp::PreconditionFailed => 412,
-            Stamp::Forbidden => 403,
-            Stamp::BadRequest => 400,
-            Stamp::CalmDown => 429,
-            Stamp::VerificationCodeSendFailed => 422,
-            Stamp::WrongVerificationCode => 422,
-            Stamp::LoginFirst => 401,
-            Stamp::NotDefined => 422,
-            Stamp::OutOfService => 422,
-            Stamp::PriceMismatch => 422,
-            Stamp::NoEnoughCredit => 422,
-            Stamp::Fail => 422,
-            Stamp::Success => 200,
-            Stamp::VerificationCodeBeenSent => 200,
-            Stamp::VerificationCodeSent => 200,
-            Stamp::UserEmailSaved => 200,
+            Stamp::ServiceUnavailable => ['code' => 503],
+            Stamp::InternalDatabaseError => ['code' => 500],
+            Stamp::UserDataDamage => ['code' => 500],
+            Stamp::FailedProcess => ['code' => 507],
+            Stamp::PreconditionFailed => ['code' => 412],
+            Stamp::Forbidden => ['code' => 403],
+            Stamp::BadRequest => ['code' => 400],
+            Stamp::CalmDown => ['code' => 429, 'penalty' => 1],
+            Stamp::VerificationCodeSendFailed => ['code' => 422],
+            Stamp::WrongVerificationCode => ['code' => 422, 'penalty' => 4],
+            Stamp::LoginFirst => ['code' => 401, 'penalty' => 4],
+            Stamp::NotDefined => ['code' => 422],
+            Stamp::OutOfService => ['code' => 422],
+            Stamp::PriceMismatch => ['code' => 422],
+            Stamp::NoEnoughCredit => ['code' => 422],
+            Stamp::Fail => ['code' => 422],
+            Stamp::Success => ['code' => 200],
+            Stamp::VerificationCodeBeenSent => ['code' => 200],
+            Stamp::VerificationCodeSent => ['code' => 200],
+            Stamp::UserEmailSaved => ['code' => 200],
         };
     }
 }

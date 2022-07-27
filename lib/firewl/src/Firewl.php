@@ -6,35 +6,43 @@ use Medoo\Medoo;
 
 class Firewl
 {
+    private const PENALTY_POINTS = 10;
+
     private Medoo $database;
 
-    public function __construct(Medoo $database)
+    public int $penaltyMinutes = 120;
+
+    public function __construct(Medoo $conn)
     {
-        $this->database = $database;
+        $this->database = $conn;
     }
 
     public function isBanned(): bool
     {
         $now = date('Y-m-d H:i:s', date_create('now')->getTimestamp());
-        $fourHoursAgo = date('Y-m-d H:i:s', date_create('-4 hour')->getTimestamp());
+        $pm = '-' . $this->penaltyMinutes . ' minute';
+        $pm = date('Y-m-d H:i:s', date_create($pm)->getTimestamp());
 
-        $penalty_points = $this->database->sum(
+        $penaltyPoints = $this->database->sum(
             'firewl',
             ['penalty'],
             [
                 'ip' => $_SERVER['REMOTE_ADDR'],
-                'created_at[<>]' => [$fourHoursAgo, $now],
+                'created_at[<>]' => [$pm, $now],
+                'ORDER' => ['id' => 'DESC'],
+                'LIMIT' => self::PENALTY_POINTS,
             ]
         );
 
-        return $penalty_points >= 10;
+        return $penaltyPoints >= self::PENALTY_POINTS;
     }
 
-    public function penalty(int $points): void
+    public function penalty(int $points, ?string $target = null): void
     {
         $this->database->insert('firewl', [
             'ip' => $_SERVER['REMOTE_ADDR'],
             'penalty' => $points,
+            'target' => $target,
         ]);
     }
 }

@@ -6,24 +6,31 @@ use App\Http\Stamp;
 use Closure;
 use Firewl\Firewl;
 use Illuminate\Http\Request;
+use Toolly\Answer;
 
 class AppMiddleware
 {
+    private Answer $answer;
+
     public function handle(Request $request, Closure $next)
     {
+        $debug = env('APP_DEBUG') === true;
+        $this->answer = app('answer');
+
         if (env('SERVICE_ONLINE_SWITCH') === '0') {
-            return response(...app('answer')->be(Stamp::ServiceUnavailable));
+            return response(...$this->answer->be(Stamp::ServiceUnavailable));
         }
 
-        if (env('APP_DEBUG') !== true) {
+        if (!$debug) {
             if (!$request->secure()) {
-                return response(...app('answer')->be(Stamp::PreconditionFailed));
+                return response(...$this->answer->be(Stamp::PreconditionFailed));
             }
         }
 
-        $firewl = new Firewl(app('medoo'));
-        if ($firewl->isBanned()) {
-            return response(...app('answer')->be(Stamp::Forbidden));
+        $this->answer->firewl = new Firewl(app('medoo'));
+        $this->answer->firewl->penaltyMinutes = $debug ? 1 : 720;
+        if ($this->answer->firewl->isBanned()) {
+            return response(...$this->answer->be(Stamp::Forbidden));
         }
 
         return $next($request);
