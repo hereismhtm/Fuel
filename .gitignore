@@ -1,6 +1,7 @@
 /storage
 /vendor
 /.idea
+Fuel.code-workspace
 composer.lock
 Homestead.json
 Homestead.yaml
