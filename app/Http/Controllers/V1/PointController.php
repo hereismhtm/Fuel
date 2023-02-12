@@ -11,6 +11,10 @@ class PointController extends Controller
 {
     public function checkout($mac, Fuel $fuel, $litre)
     {
+        if (!$this->user->is_logged()) {
+            return response(...$this->answer->be(Stamp::LoginFirst));
+        }
+
         $L = $this->lang;
 
         $res = $this->db->select(
