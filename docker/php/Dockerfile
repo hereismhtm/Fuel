@@ -2,7 +2,7 @@ FROM php:8.2.2-fpm-alpine
 
 RUN docker-php-ext-install pdo pdo_mysql
 
-COPY ./docker/php/etc/authenticin_defuse.key /usr/local/etc/
+COPY ./docker/php/etc/authenticin_defuse.key /usr/local/etc/authenticin_defuse.key
 
 # allow super user - set this if you use Composer as a
 # super user at all times like in docker containers
