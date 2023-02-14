@@ -1,0 +1,5 @@
+/vendor
+**/*.log
+Fuel.code-workspace
+.gitignore
+.git
