@@ -6,6 +6,9 @@ services:
     image: nginx:1.22.1
     ports:
       - 8000:80
+    depends_on:
+      - app
+      - db
     volumes:
       - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
 
@@ -15,12 +18,19 @@ services:
       dockerfile: ./docker/php/Dockerfile
     volumes:
       - ./:/var/www/html
+    environment:
+      FOOTING_HOST: ${DB_HOST}
+      FOOTING_PORT: ${DB_PORT}
+      FOOTING_DATABASE: ${DB_DATABASE}
+      FOOTING_USERNAME: ${DB_USERNAME}
+      FOOTING_PASSWORD: ${DB_PASSWORD}
 
   db:
     #container_name: db-at-fuel
     image: mysql:8.0.32
     ports:
       - 3306:3306
+    restart: unless-stopped
     volumes:
       - mysqldata:/var/lib/mysql
     environment:
@@ -28,7 +38,6 @@ services:
       MYSQL_USER: user
       MYSQL_PASSWORD: password
       MYSQL_DATABASE: docker-fuel
-    restart: unless-stopped
 
 volumes:
   mysqldata:

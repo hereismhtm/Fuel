@@ -56,11 +56,11 @@ $app->singleton(
 $app->singleton('medoo', function () {
     return new \Medoo\Medoo([
         'type' => env('DB_CONNECTION'),
-        'host' => env('DB_HOST'),
-        'port' => env('DB_PORT'),
-        'database' => env('DB_DATABASE'),
-        'username' => env('DB_USERNAME'),
-        'password' => env('DB_PASSWORD'),
+        'host' => env('FOOTING_HOST'),
+        'port' => env('FOOTING_PORT'),
+        'database' => env('FOOTING_DATABASE'),
+        'username' => env('FOOTING_USERNAME'),
+        'password' => env('FOOTING_PASSWORD'),
         'charset' => 'utf8mb4',
         'collation' => 'utf8mb4_unicode_520_ci',
     ]);
