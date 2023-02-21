@@ -1,8 +1,8 @@
 version: '3.8'
 
 services:
+
   web:
-    #container_name: web-at-fuel
     image: nginx:1.22.1
     ports:
       - 80:80
@@ -13,7 +13,6 @@ services:
       - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
 
   app:
-    #container_name: app-at-fuel
     build:
       dockerfile: ./docker/php/Dockerfile
     volumes:
@@ -26,7 +25,6 @@ services:
       FOOTING_PASSWORD: ${DB_PASSWORD}
 
   db:
-    #container_name: db-at-fuel
     image: mysql:8.0.32
     ports:
       - 3306:3306

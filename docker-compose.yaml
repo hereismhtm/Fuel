@@ -1,8 +1,8 @@
 version: '3.8'
 
 services:
+
   web:
-    #container_name: web-at-fuel
     build:
       dockerfile: ./docker/nginx/Dockerfile
     ports:
@@ -12,12 +12,10 @@ services:
       - db
 
   app:
-    #container_name: app-at-fuel
     build:
       dockerfile: ./docker/php/Dockerfile
 
   db:
-    #container_name: db-at-fuel
     image: mysql:8.0.32
     restart: unless-stopped
     volumes:
