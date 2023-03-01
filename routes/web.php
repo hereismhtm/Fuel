@@ -14,7 +14,7 @@
 */
 
 $router->get('/', function () use ($router) {
-    return $router->app->version();
+    return ['message' => $router->app->version()];
 });
 
 $router->post('token', function () {
