@@ -1,21 +1,23 @@
 version: '3.8'
 
 services:
+
   web:
-    #container_name: web-at-fuel
     build:
       dockerfile: ./docker/nginx/Dockerfile
     ports:
-      - 8000:80
+      - 80:80
+    depends_on:
+      - app
+      - db
 
   app:
-    #container_name: app-at-fuel
     build:
       dockerfile: ./docker/php/Dockerfile
 
   db:
-    #container_name: db-at-fuel
     image: mysql:8.0.32
+    restart: unless-stopped #always
     volumes:
       - mysqldata:/var/lib/mysql
     environment:
@@ -23,7 +25,6 @@ services:
       MYSQL_USER: user
       MYSQL_PASSWORD: password
       MYSQL_DATABASE: docker-fuel
-    restart: unless-stopped
 
 volumes:
   mysqldata:
