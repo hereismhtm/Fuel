@@ -17,7 +17,7 @@ services:
 
   db:
     image: mysql:8.0.32
-    restart: unless-stopped
+    restart: unless-stopped #always
     volumes:
       - mysqldata:/var/lib/mysql
     environment:
