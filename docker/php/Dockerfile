@@ -1,4 +1,4 @@
-FROM php:8.2.2-fpm-alpine
+FROM php:8.2.2-fpm-alpine as application
 
 RUN docker-php-ext-install pdo pdo_mysql
 
@@ -27,3 +27,5 @@ COPY ./ ./
 
 # run composer dump-autoload --optimize
 RUN composer dump-autoload --optimize
+
+FROM application as application_dev

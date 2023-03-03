@@ -14,6 +14,13 @@ services:
   app:
     build:
       dockerfile: ./docker/php/Dockerfile
+      target: application
+    environment:
+      DOCO_DB_HOST: ${DB_HOST}
+      DOCO_DB_PORT: ${DB_PORT}
+      DOCO_DB_DATABASE: ${DB_DATABASE}
+      DOCO_DB_USERNAME: ${DB_USERNAME}
+      DOCO_DB_PASSWORD: ${DB_PASSWORD}
 
   db:
     image: mysql:8.0.32

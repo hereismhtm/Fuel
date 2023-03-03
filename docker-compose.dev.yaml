@@ -15,14 +15,17 @@ services:
   app:
     build:
       dockerfile: ./docker/php/Dockerfile
+      target: ${BUILD_TARGET:-application}
     volumes:
       - ./:/var/www/html
     environment:
-      FOOTING_HOST: ${DB_HOST}
-      FOOTING_PORT: ${DB_PORT}
-      FOOTING_DATABASE: ${DB_DATABASE}
-      FOOTING_USERNAME: ${DB_USERNAME}
-      FOOTING_PASSWORD: ${DB_PASSWORD}
+      APP_ENV: ${APP_ENV:-production}
+      APP_DEBUG: ${APP_DEBUG:-false}
+      DOCO_DB_HOST: ${DB_HOST}
+      DOCO_DB_PORT: ${DB_PORT}
+      DOCO_DB_DATABASE: ${DB_DATABASE}
+      DOCO_DB_USERNAME: ${DB_USERNAME}
+      DOCO_DB_PASSWORD: ${DB_PASSWORD}
 
   db:
     image: mysql:8.0.32
