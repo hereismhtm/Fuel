@@ -1,0 +1,24 @@
+name: Master Merge Deployment
+run-name: ${{ github.actor }} is deploying docker containers 🚀
+
+on:
+  push:
+    branches: ["master"]
+
+jobs:
+  Build-Docker-Containers:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      # - name: Install Composer Dependencies
+      # working-directory: ./app
+      # run: composer install --prefer-dist
+      # - name: Run Tests
+      # working-directory: ./app
+      # run: composer run-phpunit
+      - run: docker build --target application -t hereismhtm/fuel-php:1.1 -f ./docker/php/Dockerfile .
+      - run: docker build -t hereismhtm/fuel-nginx:1.0 -f ./docker/nginx/Dockerfile .
+      - run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+      - run: docker push hereismhtm/fuel-php:1.1
+      - run: docker push hereismhtm/fuel-nginx:1.0
