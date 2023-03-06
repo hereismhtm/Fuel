@@ -3,8 +3,7 @@ version: '3.8'
 services:
 
   web:
-    build:
-      dockerfile: ./docker/nginx/Dockerfile
+    image: hereismhtm/fuel-nginx:1.0
     ports:
       - 80:80
     depends_on:
@@ -12,9 +11,7 @@ services:
       - db
 
   app:
-    build:
-      dockerfile: ./docker/php/Dockerfile
-      target: application
+    image: hereismhtm/fuel-php:1.1
     environment:
       DOCO_DB_HOST: ${DB_HOST}
       DOCO_DB_PORT: ${DB_PORT}
@@ -24,14 +21,14 @@ services:
 
   db:
     image: mysql:8.0.32
-    restart: unless-stopped #always
+    restart: always
     volumes:
       - mysqldata:/var/lib/mysql
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_USER: user
-      MYSQL_PASSWORD: password
-      MYSQL_DATABASE: docker-fuel
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE}
 
 volumes:
   mysqldata:
