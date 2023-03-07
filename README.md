@@ -5,7 +5,7 @@ Lumen PHP Framework.
 ## Docker containers
 
 ### Build and run local enviroment
-<code>docker compose -f docker-compose.dev.yaml --env-file .env.local up -d --build</code>
+<code>sh bin/dev-mode.sh -d --build</code>
 
 ### Stop local enviroment
-<code>docker compose -f docker-compose.dev.yaml down</code>
+<code>docker compose down</code>
