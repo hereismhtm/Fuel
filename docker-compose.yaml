@@ -3,7 +3,7 @@ version: '3.8'
 services:
 
   web:
-    image: hereismhtm/fuel-nginx:1.0
+    image: hereismhtm/fuel-web:latest
     ports:
       - 80:80
     depends_on:
@@ -11,7 +11,10 @@ services:
       - db
 
   app:
-    image: hereismhtm/fuel-php:1.1
+    image: hereismhtm/fuel-app:latest
+    volumes:
+      - /var/local/log/fuel:/var/www/html/storage/logs
+    env_file: .env
     environment:
       DOCO_DB_HOST: ${DB_HOST}
       DOCO_DB_PORT: ${DB_PORT}

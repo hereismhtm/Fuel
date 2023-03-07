@@ -14,6 +14,7 @@ services:
       target: ${BUILD_TARGET:-application}
     volumes:
       - ./:/var/www/html
+      - ./storage/logs:/var/www/html/storage/logs
     environment:
       APP_ENV: ${APP_ENV:-production}
       APP_DEBUG: ${APP_DEBUG:-false}
