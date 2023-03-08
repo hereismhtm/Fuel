@@ -3,7 +3,7 @@ version: '3.8'
 services:
 
   web:
-    image: hereismhtm/fuel-web:latest
+    image: hereismhtm/bb:fuel-web
     ports:
       - 80:80
     depends_on:
@@ -11,7 +11,7 @@ services:
       - db
 
   app:
-    image: hereismhtm/fuel-app:latest
+    image: hereismhtm/bb:fuel-app
     volumes:
       - /var/local/log/fuel:/var/www/html/storage/logs
     env_file: .env
