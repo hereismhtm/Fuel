@@ -7,11 +7,11 @@ services:
     ports:
       - 80:80
     depends_on:
-      - app
+      - backend
       - db
 
-  app:
-    image: hereismhtm/bb:fuel-app
+  backend:
+    image: hereismhtm/bb:fuel-backend
     volumes:
       - type: bind
         source: /var/local/log/fuel
