@@ -13,7 +13,9 @@ services:
   app:
     image: hereismhtm/bb:fuel-app
     volumes:
-      - /var/local/log/fuel:/var/www/html/storage/logs
+      - type: bind
+        source: /var/local/log/fuel
+        target: /var/www/html/storage/logs
     env_file: .env
     environment:
       DOCO_DB_HOST: ${DB_HOST}
